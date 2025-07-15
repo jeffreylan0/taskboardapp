@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { useSession } from 'next-auth/react'; // Import useSession
 import { Task } from '../pages/index';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog'; // Assumes shadcn/ui setup
-import { Button } from './ui/button'; // Assumes shadcn/ui setup
-import { Input } from './ui/input'; // Assumes shadcn/ui setup
-import { Label } from './ui/label'; // Assumes shadcn/ui setup
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 
 interface TaskModalProps {
   task: Task;
@@ -12,9 +13,8 @@ interface TaskModalProps {
 }
 
 const TaskModal = ({ task, onClose, onComplete }: TaskModalProps) => {
+  const { update } = useSession(); // Get the session update function
   const [isCompleting, setIsCompleting] = useState(false);
-
-  // States for editable fields
   const [title, setTitle] = useState(task.title);
   const [duration, setDuration] = useState(task.duration);
 
@@ -31,16 +31,18 @@ const TaskModal = ({ task, onClose, onComplete }: TaskModalProps) => {
         throw new Error('failed to complete task');
       }
 
+      await update(); // This tells NextAuth to refetch the session
+      
       onComplete(task.id);
       onClose();
     } catch (error) {
       console.error(error);
-      // Optionally show an error message to the user
     } finally {
       setIsCompleting(false);
     }
   };
-
+  
+  // ... rest of the component
   return (
     <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
@@ -62,9 +64,8 @@ const TaskModal = ({ task, onClose, onComplete }: TaskModalProps) => {
           </div>
         </div>
         <DialogFooter>
-          {/* A save button could be added here to persist title/duration changes */}
-          <Button
-            onClick={handleComplete}
+          <Button 
+            onClick={handleComplete} 
             disabled={isCompleting}
             className="bg-green-600 hover:bg-green-700 text-white w-full"
           >
