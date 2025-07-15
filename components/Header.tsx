@@ -15,13 +15,17 @@ const Header = () => {
         {/* Left Side */}
         <div className="flex items-center space-x-6">
           <span className="font-bold text-xl">taskboard</span>
-          <Link href="/analytics" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+          {/* Analytics tab is hidden on small screens */}
+          <Link
+            href="/analytics"
+            className="hidden md:block text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
             analytics
           </Link>
         </div>
 
         {/* Right Side */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 md:space-x-4">
           <Button
             variant="ghost"
             size="icon"
@@ -33,7 +37,9 @@ const Header = () => {
           </Button>
           <div className="flex items-center space-x-1 text-sm text-orange-500">
             <Flame size={16} />
-            <span>{session?.user?.streak ?? 0}d streak</span>
+            <span>{session?.user?.streak ?? 0}</span>
+            {/* "d streak" text is hidden on small screens */}
+            <span className="hidden md:inline">d streak</span>
           </div>
           {session?.user?.image && (
             <Image
@@ -45,7 +51,9 @@ const Header = () => {
             />
           )}
           <Button variant="destructive" size="sm" onClick={() => signOut()}>
-            <LogOut className="mr-2 h-4 w-4" /> sign out
+            <LogOut className="h-4 w-4 md:mr-2" />
+            {/* "sign out" text is hidden on small screens */}
+            <span className="hidden md:inline">sign out</span>
           </Button>
         </div>
       </div>
