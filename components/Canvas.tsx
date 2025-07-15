@@ -9,12 +9,13 @@ interface CanvasProps {
   onTaskComplete: (taskId: string) => void;
 }
 
-const TaskCard = ({ task }: { task: Task }) => {
+const TaskCard = ({ task, onClick }: { task: Task, onClick: () => void }) => {
   // Base height: e.g., 4 pixels per minute. Adjust as needed.
   const cardHeight = task.duration * 4;
 
   return (
     <motion.button
+      onClick={onClick}
       layout
       style={{ height: `${cardHeight}px` }}
       initial={{ opacity: 0, scale: 0.8 }}
