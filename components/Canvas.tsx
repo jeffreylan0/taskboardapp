@@ -40,9 +40,11 @@ const Canvas = ({ tasks, onTaskComplete }: CanvasProps) => {
       <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <AnimatePresence>
           {tasks.map((task) => (
-            <div key={task.id} onClick={() => setSelectedTask(task)}>
-              <TaskCard task={task} />
-            </div>
+            <TaskCard
+              key={task.id}
+              task={task}
+              onClick={() => setSelectedTask(task)}
+            />
           ))}
         </AnimatePresence>
       </div>
