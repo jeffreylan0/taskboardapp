@@ -1,13 +1,20 @@
-import NextAuth, { DefaultSession } from "next-auth"
+import NextAuth, { DefaultSession, DefaultUser } from 'next-auth';
 
-declare module "next-auth" {
+declare module 'next-auth' {
   /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
+   * Extends the default User model to include our custom fields.
+   */
+  interface User extends DefaultUser {
+    streak: number;
+  }
+
+  /**
+   * Extends the default Session to include our custom fields on the user object.
    */
   interface Session {
     user?: {
       id: string;
       streak: number;
-    } & DefaultSession["user"]
+    } & DefaultSession['user'];
   }
 }
