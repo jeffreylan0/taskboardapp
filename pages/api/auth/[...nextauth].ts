@@ -15,16 +15,11 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'database',
   },
-  callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
-        session.user.streak = user.streak; // Add this line
-      }
-      return session;
-    },
-    async signIn({ user, isNewUser }) {
-      if (isNewUser && user.id) {
+  events: {
+    // This event is triggered when a new user is created in the database.
+    createUser: async ({ user }) => {
+      // Seed initial tasks for the new user
+      if (user.id) {
         await prisma.task.createMany({
           data: [
             { title: "review project requirements", duration: 45, userId: user.id },
@@ -33,7 +28,15 @@ export const authOptions: NextAuthOptions = {
           ],
         });
       }
-      return true;
+    },
+  },
+  callbacks: {
+    async session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
+        session.user.streak = user.streak;
+      }
+      return session;
     },
   },
 };
