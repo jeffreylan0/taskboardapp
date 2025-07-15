@@ -18,7 +18,7 @@ export interface Task {
 
 const LandingPage = () => (
   <div className="flex flex-col items-center justify-center min-h-screen bg-white">
-    <h1 className="text-5xl font-bold text-black dark:text-white">taskboard</h1>
+    <h1 className="text-5xl font-bold text-black">taskboard</h1>
     <p className="mt-2 text-lg italic text-gray-500">life manager</p>
     <button
       onClick={() => signIn('google')}
