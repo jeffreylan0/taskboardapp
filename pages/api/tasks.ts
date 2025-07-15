@@ -1,7 +1,26 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]';
+import { authOptions } from '../auth/[...nextauth]';
 import prisma from '../../lib/prisma';
+import { z } from 'zod';
+
+// Zod schema for creating a task
+const createTaskSchema = z.object({
+  title: z.string().min(1, 'title is required').max(150),
+  duration: z.number().int().positive('duration must be a positive number'),
+});
+
+// Helper functions for streak calculation
+function areConsecutiveDays(date1: Date, date2: Date): boolean {
+  const oneDay = 24 * 60 * 60 * 1000;
+  const d1 = new Date(date1.toDateString());
+  const d2 = new Date(date2.toDateString());
+  return d1.getTime() - d2.getTime() === oneDay;
+}
+
+function isSameDay(date1: Date, date2: Date): boolean {
+  return date1.toDateString() === date2.toDateString();
+}
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
@@ -12,8 +31,9 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
 
   const userId = session.user.id;
 
+  // --- GET a user's tasks ---
   if (req.method === 'GET') {
-    const tasks = await prisma.task.findMany({
+    const activeTasks = await prisma.task.findMany({
       where: { userId: userId, completed: false },
       orderBy: { createdAt: 'desc' },
     });
@@ -21,26 +41,60 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       where: { userId: userId, completed: true },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ active: tasks, completed: completedTasks });
-  } else if (req.method === 'POST') {
-    const { title, duration } = req.body;
-    const result = await prisma.task.create({
-      data: {
-        title: title,
-        duration: parseInt(duration, 10),
-        user: { connect: { id: userId } },
-      },
-    });
-    res.status(201).json(result);
-  } else if (req.method === 'PUT') {
-    const { id, completed } = req.body;
-    const updatedTask = await prisma.task.updateMany({
-      where: { id: id, userId: userId },
-      data: { completed: completed },
-    });
-    res.json(updatedTask);
-  } else {
-    res.setHeader('Allow', ['GET', 'POST', 'PUT']);
-    res.status(405).end(`method ${req.method} not allowed`);
+    return res.json({ active: activeTasks, completed: completedTasks });
   }
+
+  // --- POST a new task ---
+  if (req.method === 'POST') {
+    const validation = createTaskSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ error: 'invalid request body', details: validation.error.flatten() });
+    }
+    const { title, duration } = validation.data;
+    const result = await prisma.task.create({
+      data: { title, duration, user: { connect: { id: userId } } },
+    });
+    return res.status(201).json(result);
+  }
+
+  // --- PUT (complete) a task and update streak ---
+  if (req.method === 'PUT') {
+    const { id, completed } = req.body;
+    if (typeof id !== 'string' || !completed) {
+      return res.status(400).json({ message: 'task id and completion status required' });
+    }
+
+    await prisma.task.updateMany({
+      where: { id: id, userId: userId },
+      data: { completed: true },
+    });
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ message: 'user not found' });
+
+    let newStreak = user.streak;
+    const today = new Date();
+    const lastCompleted = user.lastCompletedAt;
+
+    if (lastCompleted) {
+      if (areConsecutiveDays(today, lastCompleted)) {
+        newStreak++;
+      } else if (!isSameDay(today, lastCompleted)) {
+        newStreak = 1;
+      }
+    } else {
+      newStreak = 1;
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { streak: newStreak, lastCompletedAt: today },
+    });
+
+    return res.status(200).json({ message: 'task completed successfully' });
+  }
+
+  // --- Fallback for other methods ---
+  res.setHeader('Allow', ['GET', 'POST', 'PUT']);
+  res.status(405).end(`method ${req.method} not allowed`);
 }
