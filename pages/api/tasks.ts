@@ -89,7 +89,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
     // Otherwise, this is an edit action
     const updatedTask = await prisma.task.update({
       where: { id: id },
-      data: { title, duration },
+      data: { title, duration, completed },
     });
     return res.status(200).json(updatedTask);
   }
