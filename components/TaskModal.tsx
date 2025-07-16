@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSession } from 'next-auth/react'; // Import useSession
+import { useSession } from 'next-auth/react';
 import { Task } from '../pages/index';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 import { Button } from './ui/button';
@@ -9,40 +9,58 @@ import { Label } from './ui/label';
 interface TaskModalProps {
   task: Task;
   onClose: () => void;
-  onComplete: (taskId: string) => void;
+  onComplete: (completedTask: Task) => void;
+  onUpdate: (updatedTask: Task) => void;
 }
 
-const TaskModal = ({ task, onClose, onComplete }: TaskModalProps) => {
-  const { update } = useSession(); // Get the session update function
-  const [isCompleting, setIsCompleting] = useState(false);
+const TaskModal = ({ task, onClose, onComplete, onUpdate }: TaskModalProps) => {
+  const { update: updateSession } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+  
   const [title, setTitle] = useState(task.title);
   const [duration, setDuration] = useState(task.duration);
 
+  const handleSaveChanges = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: task.id, title, duration }),
+      });
+      const updatedTask = await res.json();
+      if (!res.ok) throw new Error(updatedTask.message || 'Failed to save changes');
+      
+      onUpdate(updatedTask);
+      onClose();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleComplete = async () => {
-    setIsCompleting(true);
+    setIsLoading(true);
     try {
       const res = await fetch('/api/tasks', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: task.id, completed: true }),
       });
-
-      if (!res.ok) {
-        throw new Error('failed to complete task');
-      }
-
-      await update(); // This tells NextAuth to refetch the session
+      const completedTask = await res.json();
+      if (!res.ok) throw new Error(completedTask.message || 'Failed to complete task');
       
-      onComplete(task.id);
+      await updateSession(); // Refresh session to get new streak
+      onComplete(completedTask);
       onClose();
     } catch (error) {
       console.error(error);
     } finally {
-      setIsCompleting(false);
+      setIsLoading(false);
     }
   };
-  
-  // ... rest of the component
+
   return (
     <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
@@ -55,21 +73,23 @@ const TaskModal = ({ task, onClose, onComplete }: TaskModalProps) => {
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="duration" className="text-right">duration</Label>
+            <Label htmlFor="duration" className="text-right">duration</dd>
             <Input id="duration" type="number" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="col-span-3" />
           </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">tags</Label>
-             <div className="col-span-3 text-sm text-gray-500">(coming soon)</div>
-          </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="sm:justify-between">
           <Button 
             onClick={handleComplete} 
-            disabled={isCompleting}
-            className="bg-green-600 hover:bg-green-700 text-white w-full"
+            disabled={isLoading}
+            className="bg-green-600 hover:bg-green-700 text-white"
           >
-            {isCompleting ? 'completing...' : 'complete task'}
+            {isLoading ? '...' : 'complete task'}
+          </Button>
+          <Button 
+            onClick={handleSaveChanges} 
+            disabled={isLoading}
+          >
+            {isLoading ? '...' : 'save changes'}
           </Button>
         </DialogFooter>
       </DialogContent>
