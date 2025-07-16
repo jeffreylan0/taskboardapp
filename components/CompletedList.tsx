@@ -1,13 +1,36 @@
+import { useState } from 'react';
 import { Task } from '../pages/index';
 import { RefreshCcw, Trash2 } from 'lucide-react';
 
 interface CompletedListProps {
   tasks: Task[];
+  onTaskReopen: (task: Task) => void;
 }
 
-const CompletedList = ({ tasks }: CompletedListProps) => {
+const CompletedList = ({ tasks, onTaskReopen }: CompletedListProps) => {
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  const handleReopenClick = async (taskToReopen: Task) => {
+    setLoadingId(taskToReopen.id);
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: taskToReopen.id, completed: false }),
+      });
+      if (!res.ok) {
+        throw new Error('Failed to re-open task');
+      }
+      onTaskReopen(taskToReopen);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   if (tasks.length === 0) {
-    return null; // Don't render anything if there are no completed tasks
+    return null;
   }
 
   return (
@@ -28,9 +51,13 @@ const CompletedList = ({ tasks }: CompletedListProps) => {
               </span>
             </div>
             <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-               {/* These buttons are for display; functionality would need to be wired up */}
-              <button title="re-open task" className="p-1 text-gray-400 hover:text-gray-600">
-                <RefreshCcw size={16} />
+              <button
+                title="re-open task"
+                disabled={loadingId === task.id}
+                onClick={() => handleReopenClick(task)}
+                className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+              >
+                {loadingId === task.id ? '...' : <RefreshCcw size={16} />}
               </button>
               <button title="delete permanently" className="p-1 text-gray-400 hover:text-red-500">
                 <Trash2 size={16} />
