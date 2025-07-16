@@ -80,7 +80,10 @@ const Dashboard = () => {
             />
           </div>
           <div className="mt-16">
-            <CompletedList tasks={completedTasks} />
+            <CompletedList
+              tasks={completedTasks}
+              onTaskReopen={handleTaskReopen}
+            />
           </div>
         </div>
       </main>
