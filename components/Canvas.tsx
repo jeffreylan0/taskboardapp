@@ -55,6 +55,7 @@ const Canvas = ({ tasks, onTaskComplete }: CanvasProps) => {
           task={selectedTask}
           onClose={() => setSelectedTask(null)}
           onComplete={onTaskComplete}
+          onUpdate={onTaskUpdate}
         />
       )}
     </>
