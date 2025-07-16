@@ -6,7 +6,8 @@ import TaskModal from './TaskModal';
 
 interface CanvasProps {
   tasks: Task[];
-  onTaskComplete: (taskId: string) => void;
+  onTaskComplete: (completedTask: Task) => void;
+  onTaskUpdate: (updatedTask: Task) => void; // Add this line
 }
 
 const TaskCard = ({ task, onClick }: { task: Task, onClick: () => void }) => {
