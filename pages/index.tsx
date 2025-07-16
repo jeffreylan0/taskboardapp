@@ -52,27 +52,32 @@ const Dashboard = () => {
     setTasks(prev => [newTask, ...prev]);
   };
 
-  const handleTaskComplete = (taskId: string) => {
-    const taskToMove = tasks.find(t => t.id === taskId);
-    if (taskToMove) {
-      setTasks(prev => prev.filter(t => t.id !== taskId));
-      setCompletedTasks(prev => [{ ...taskToMove, completed: true }, ...prev]);
-    }
+  // This function will now correctly move the task between lists
+  const handleTaskComplete = (completedTask: Task) => {
+    setTasks(prev => prev.filter(t => t.id !== completedTask.id));
+    setCompletedTasks(prev => [completedTask, ...prev]);
   };
 
+  // NEW: This function handles in-place editing of a task
+  const handleTaskUpdate = (updatedTask: Task) => {
+    setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+  };
+  
   return (
     <div className="min-h-screen">
       <Header />
       <main className="pt-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl text-gray-600 dark:text-gray-400 text-center">
-            welcome, {session?.user?.name?.split(' ')[0].toLowerCase()}
-          </h2>
+          {/* ... (welcome message) */}
           <div className="mt-12">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
+            <h3 className="text-lg font-bold dark:text-gray-200">
               {tasks.length} active tasks
             </h3>
-            <Canvas tasks={tasks} onTaskComplete={handleTaskComplete} />
+            <Canvas 
+              tasks={tasks} 
+              onTaskComplete={handleTaskComplete}
+              onTaskUpdate={handleTaskUpdate} 
+            />
           </div>
           <div className="mt-16">
             <CompletedList tasks={completedTasks} />
