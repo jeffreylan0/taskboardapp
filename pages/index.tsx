@@ -62,6 +62,11 @@ const Dashboard = () => {
   const handleTaskUpdate = (updatedTask: Task) => {
     setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
   };
+
+  const handleTaskReopen = (reopenedTask: Task) => {
+    setCompletedTasks(prev => prev.filter(t => t.id !== reopenedTask.id));
+    setTasks(prev => [{ ...reopenedTask, completed: false }, ...prev]);
+  };
   
   return (
     <div className="min-h-screen">
@@ -90,11 +95,6 @@ const Dashboard = () => {
       <AddTaskButton onTaskCreate={handleTaskCreate} />
     </div>
   );
-};
-
-const handleTaskReopen = (reopenedTask: Task) => {
-  setCompletedTasks(prev => prev.filter(t => t.id !== reopenedTask.id));
-  setTasks(prev => [{ ...reopenedTask, completed: false }, ...prev]);
 };
 
 return (
