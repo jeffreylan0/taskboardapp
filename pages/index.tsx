@@ -89,6 +89,27 @@ const Dashboard = () => {
   );
 };
 
+const handleTaskReopen = (reopenedTask: Task) => {
+  setCompletedTasks(prev => prev.filter(t => t.id !== reopenedTask.id));
+  setTasks(prev => [{ ...reopenedTask, completed: false }, ...prev]);
+};
+
+return (
+  <div className="min-h-screen">
+    <Header />
+    <main className="pt-24 px-4 sm:px-6 lg:px-8">
+      {/* ... */}
+      <div className="mt-16">
+        <CompletedList 
+          tasks={completedTasks} 
+          onTaskReopen={handleTaskReopen} // Pass the new handler here
+        />
+      </div>
+    </main>
+    <AddTaskButton onTaskCreate={handleTaskCreate} />
+  </div>
+);
+
 export default function Home() {
   const { data: session, status } = useSession();
 
