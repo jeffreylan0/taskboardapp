@@ -73,7 +73,7 @@ const TaskModal = ({ task, onClose, onComplete, onUpdate }: TaskModalProps) => {
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="duration" className="text-right">duration</dd>
+            <Label htmlFor="duration" className="text-right">duration</Label>
             <Input id="duration" type="number" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="col-span-3" />
           </div>
         </div>
