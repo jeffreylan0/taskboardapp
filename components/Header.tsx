@@ -2,7 +2,7 @@ import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { LogOut, Flame, Sun, Moon, Settings as SettingsIcon } from 'lucide-react';
+import { LogOut, Flame, Sun, Moon, Settings as SettingsIcon, BarChartHorizontal } from 'lucide-react';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
 
@@ -28,7 +28,7 @@ const Header = () => {
         <div className="flex items-center space-x-2 md:space-x-4">
           <div className="flex items-center space-x-1 text-sm text-orange-500">
             <Flame size={16} />
-            {/* Tweaked streak indicator text */}
+            {/* Tweaked streak indicator text for natural spacing */}
             <span>{session?.user?.streak ?? 0}d</span>
             <span className="hidden md:inline">&nbsp;streak</span>
           </div>
@@ -70,7 +70,7 @@ const Header = () => {
               <Link href="/settings">
                   <DropdownMenuItem>
                       <SettingsIcon className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
+                      <span>settings</span>
                   </DropdownMenuItem>
               </Link>
               <DropdownMenuSeparator />
