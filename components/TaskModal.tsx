@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PropertyManager } from './PropertyManager';
-import type { LocalProperty } from '@/types/properties'; // FIX: Import type from its new location
+import type { LocalProperty } from '@/types/properties';
 
 interface TaskModalProps {
   task: Task & { properties?: LocalProperty[] | null };

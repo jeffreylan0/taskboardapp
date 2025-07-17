@@ -1,8 +1,7 @@
 // types/properties.d.ts
 
-export const propertyTypes = ["TEXT", "NUMBER", "CHECKBOX", "SELECT", "MULTI_SELECT", "DATE", "URL", "EMAIL", "PHONE"] as const;
-
-export type PropertyType = typeof propertyTypes[number];
+// The 'const' has been removed from this file.
+export type PropertyType = "TEXT" | "NUMBER" | "CHECKBOX" | "SELECT" | "MULTI_SELECT" | "DATE" | "URL" | "EMAIL" | "PHONE";
 
 export type SelectOption = {
   id: string;

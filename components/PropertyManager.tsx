@@ -10,7 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, Trash2, GripVertical, Plus, X } from 'lucide-react';
 import { MultiSelectInput } from './MultiSelectInput'; // Import the new component
 import type { LocalProperty, PropertyType, SelectOption } from '@/types/properties'; // Import shared types
-import { propertyTypes } from './types/properties'; // Import shared types
+import { propertyTypes } from '@/types/properties'; // Import shared types
+
+const propertyTypes: PropertyType[] = ["TEXT", "NUMBER", "CHECKBOX", "SELECT", "MULTI_SELECT", "DATE", "URL", "EMAIL", "PHONE"];
 
 // --- Property Editor Popover Sub-Component ---
 const PropertyEditor = ({ property, onSave, onDelete }: { property: LocalProperty, onSave: (updatedProperty: LocalProperty) => void, onDelete: () => void }) => {
