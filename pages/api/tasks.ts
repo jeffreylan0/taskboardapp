@@ -6,14 +6,23 @@ import { z } from 'zod';
 
 // --- Manual Type Definition to Bypass Build Error ---
 const propertyTypes = ["TEXT", "NUMBER", "CHECKBOX", "SELECT", "MULTI_SELECT", "DATE", "URL", "EMAIL", "PHONE"] as const;
-type PropertyType = typeof propertyTypes[number];
 
 // --- Zod Schemas for Input Validation ---
+
+// NEW: Schema for the options within a SELECT or MULTI_SELECT property
+const optionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  color: z.string().optional(),
+});
+
+// UPDATED: The property schema now includes the optional 'options' array.
 const propertySchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.enum(propertyTypes), // Use the manually defined types for validation
+  type: z.enum(propertyTypes),
   value: z.any(),
+  options: z.array(optionSchema).optional(), // This is the critical fix
 });
 
 const createTaskSchema = z.object({
