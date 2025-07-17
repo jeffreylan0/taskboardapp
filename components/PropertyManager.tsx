@@ -1,3 +1,5 @@
+// components/PropertyManager.tsx
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,78 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Trash2, GripVertical, Plus, X, ChevronsUpDown, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-// --- Type Definitions ---
-const propertyTypes = ["TEXT", "NUMBER", "CHECKBOX", "SELECT", "MULTI_SELECT", "DATE", "URL", "EMAIL", "PHONE"] as const;
-type PropertyType = typeof propertyTypes[number];
-
-type SelectOption = {
-  id: string;
-  name: string;
-  color?: string;
-};
-
-export type LocalProperty = {
-  id:string;
-  name: string;
-  type: PropertyType;
-  value: any;
-  options?: SelectOption[];
-};
-
-// --- Multi-Select Input Sub-Component ---
-const MultiSelectInput = ({ options, value, onChange }: { options: SelectOption[], value: string[], onChange: (newValue: string[]) => void }) => {
-    const [open, setOpen] = useState(false);
-    // Use a Set for efficient lookups to check if an option is selected
-    const selectedValues = new Set(value);
-
-    return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between h-auto min-h-[2.5rem]">
-                    <div className="flex gap-1 flex-wrap">
-                        {value.length > 0
-                            ? value.map(val => <Badge key={val} variant="secondary" className="font-normal">{val}</Badge>)
-                            : <span className="text-muted-foreground font-normal">select options...</span>
-                        }
-                    </div>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <Command>
-                    <CommandInput placeholder="search options..." />
-                    <CommandEmpty>no option found.</CommandEmpty>
-                    <CommandGroup className="max-h-60 overflow-y-auto">
-                        {options.map((option) => (
-                            <CommandItem
-                                key={option.id}
-                                value={option.name}
-                                onSelect={() => {
-                                    const newSelectedValues = new Set(selectedValues);
-                                    if (newSelectedValues.has(option.name)) {
-                                        newSelectedValues.delete(option.name);
-                                    } else {
-                                        newSelectedValues.add(option.name);
-                                    }
-                                    onChange(Array.from(newSelectedValues));
-                                }}
-                            >
-                                <Check className={cn("mr-2 h-4 w-4", selectedValues.has(option.name) ? "opacity-100" : "opacity-0")}/>
-                                {option.name}
-                            </CommandItem>
-                        ))}
-                    </CommandGroup>
-                </Command>
-            </PopoverContent>
-        </Popover>
-    );
-};
-
+import { PlusCircle, Trash2, GripVertical, Plus, X } from 'lucide-react';
+import { MultiSelectInput } from './MultiSelectInput'; // Import the new component
+import type { LocalProperty, PropertyType, SelectOption } from '@/types/properties'; // Import shared types
+import { propertyTypes } from '@/types/properties'; // Import shared types
 
 // --- Property Editor Popover Sub-Component ---
 const PropertyEditor = ({ property, onSave, onDelete }: { property: LocalProperty, onSave: (updatedProperty: LocalProperty) => void, onDelete: () => void }) => {
@@ -192,9 +126,7 @@ export const PropertyManager = ({ properties, onPropertiesChange }: PropertyMana
 
   const handleUpdateProperty = (updatedProperty: LocalProperty) => {
     const existingProp = properties.find(p => p.id === updatedProperty.id);
-    // When changing a property type, reset its value to avoid data mismatches
     if (existingProp && existingProp.type !== updatedProperty.type) {
-        // If changing to multi-select, initialize value as an empty array
         if (updatedProperty.type === 'MULTI_SELECT') {
             updatedProperty.value = [];
         } else {
@@ -246,7 +178,7 @@ export const PropertyManager = ({ properties, onPropertiesChange }: PropertyMana
       case 'URL':
           return <Input type="url" placeholder="https://..." value={prop.value || ''} onChange={(e) => handleValueChange(prop.id, e.target.value)} />;
       case 'EMAIL':
-          return <Input type="email" placeholder="name@example.com" value={prop.value || ''} onChange={(e) => handleValueChange(prop.id, e.gant.value)} />;
+          return <Input type="email" placeholder="name@example.com" value={prop.value || ''} onChange={(e) => handleValueChange(prop.id, e.target.value)} />;
       case 'PHONE':
           return <Input type="tel" placeholder="123-456-7890" value={prop.value || ''} onChange={(e) => handleValueChange(prop.id, e.target.value)} />;
       case 'TEXT':
