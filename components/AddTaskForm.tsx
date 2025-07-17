@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Wand2 } from 'lucide-react';
-import { PropertyManager, LocalProperty } from './PropertyManager'; // Import the new component and type
+import { PropertyManager } from './PropertyManager';
+import type { LocalProperty } from '@/types/properties'; // FIX: Import type from its new location
 
 interface AddTaskFormProps {
   onTaskCreate: (newTask: Task) => void;
@@ -93,23 +94,23 @@ const AddTaskForm = ({ onTaskCreate, onClose }: AddTaskFormProps) => {
 
             {recommendation && !isLoading && (
                  <div className="grid grid-cols-3 gap-2">
-                    <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration - adjustment)}>{`${recommendation.duration - adjustment} min`}</Button>
-                    <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration)}>
-                        <Wand2 className="mr-2 h-4 w-4"/> {recommendation.duration} min
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration + adjustment)}>{`${recommendation.duration + adjustment} min`}</Button>
+                   <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration - adjustment)}>{`${recommendation.duration - adjustment} min`}</Button>
+                   <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration)}>
+                     <Wand2 className="mr-2 h-4 w-4"/> {recommendation.duration} min
+                   </Button>
+                   <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration + adjustment)}>{`${recommendation.duration + adjustment} min`}</Button>
                  </div>
              )}
 
             <div className="relative">
-                <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-                <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">or</span></div>
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">or</span></div>
             </div>
 
             <Input
-                type="number"
-                placeholder="enter a custom duration..."
-                onChange={(e) => setDuration(Number(e.target.value) || null)}
+              type="number"
+              placeholder="enter a custom duration..."
+              onChange={(e) => setDuration(Number(e.target.value) || null)}
             />
           </div>
 

@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PropertyManager, LocalProperty } from './PropertyManager'; // Import the new component and type
+import { PropertyManager } from './PropertyManager';
+import type { LocalProperty } from '@/types/properties'; // FIX: Import type from its new location
 
 interface TaskModalProps {
   task: Task & { properties?: LocalProperty[] | null };
