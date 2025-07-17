@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select"
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from 'sonner'; // Import toast from sonner
 import Link from 'next/link';
 
 // --- Create Property Form Component ---
@@ -37,7 +37,6 @@ const CreatePropertyForm = ({ onPropertyCreate }: { onPropertyCreate: () => void
     const [name, setName] = useState('');
     const [type, setType] = useState<PropertyType | ''>('');
     const [isOpen, setIsOpen] = useState(false);
-    const { toast } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -50,13 +49,13 @@ const CreatePropertyForm = ({ onPropertyCreate }: { onPropertyCreate: () => void
         });
 
         if (res.ok) {
-            toast({ title: "property created", description: `"${name}" was added.` });
+            toast.success("Property created", { description: `"${name}" was added.` });
             onPropertyCreate(); // Tell the parent to refetch
             setIsOpen(false); // Close the dialog
             setName('');
             setType('');
         } else {
-            toast({ variant: "destructive", title: "error", description: "failed to create property." });
+            toast.error("Error", { description: "Failed to create property." });
         }
     };
 
@@ -127,7 +126,7 @@ const SettingsPage = () => {
         </div>
         <CreatePropertyForm onPropertyCreate={fetchProperties} />
       </div>
-      
+
       <div className='rounded-lg border'>
         <Table>
           <TableHeader>
@@ -147,7 +146,7 @@ const SettingsPage = () => {
           {properties.length === 0 && <TableCaption>you haven't created any properties yet.</TableCaption>}
         </Table>
       </div>
-      
+
       <Link href="/" className="mt-8 text-indigo-600 hover:underline inline-block">
         ← return to dashboard
       </Link>
