@@ -1,16 +1,18 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]';
+import { authOptions } from '../auth/[...nextauth]';
 import prisma from '../../lib/prisma';
 import { z } from 'zod';
-import { PropertyType } from '@prisma/client';
+
+// --- Manual Type Definition to Bypass Build Error ---
+const propertyTypes = ["TEXT", "NUMBER", "CHECKBOX", "SELECT", "MULTI_SELECT", "DATE", "URL", "EMAIL", "PHONE"] as const;
+type PropertyType = typeof propertyTypes[number];
 
 // --- Zod Schemas for Input Validation ---
-
 const propertySchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.nativeEnum(PropertyType),
+  type: z.enum(propertyTypes), // Use the manually defined types for validation
   value: z.any(),
 });
 
@@ -28,8 +30,8 @@ const updateTaskSchema = z.object({
   properties: z.array(propertySchema).optional(),
 });
 
-// --- Helper Functions for Streak Calculation ---
 
+// --- Helper Functions for Streak Calculation ---
 function areConsecutiveDays(date1: Date, date2: Date): boolean {
   const oneDay = 24 * 60 * 60 * 1000;
   const d1 = new Date(date1.toDateString());
@@ -43,7 +45,6 @@ function isSameDay(date1: Date, date2: Date): boolean {
 
 
 // --- Main API Route Handler ---
-
 export default async function handle(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
   if (!session || !session.user?.id) {
@@ -84,13 +85,12 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       return res.status(400).json({ error: 'invalid request body', details: validation.error.flatten() });
     }
     const { id, title, duration, completed, properties } = validation.data;
-    
+
     const task = await prisma.task.findFirst({ where: { id, userId } });
     if (!task) {
       return res.status(404).json({ message: 'Task not found or you do not have permission' });
     }
 
-    // If 'completed' is true, this is a completion action with streak logic
     if (completed === true) {
       const user = await prisma.user.findUnique({ where: { id: userId } });
       if (!user) return res.status(404).json({ message: 'User not found' });
@@ -103,13 +103,12 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
       } else {
         newStreak = 1;
       }
-      
+
       await prisma.user.update({ where: { id: userId }, data: { streak: newStreak, lastCompletedAt: today } });
       const updatedTask = await prisma.task.update({ where: { id }, data: { completed: true } });
       return res.status(200).json(updatedTask);
     }
-    
-    // Otherwise, this is an edit or re-open action
+
     const updatedTask = await prisma.task.update({
       where: { id: id },
       data: { title, duration, completed, properties },
@@ -117,7 +116,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
     return res.status(200).json(updatedTask);
   }
 
-  // --- Fallback for other methods ---
   res.setHeader('Allow', ['GET', 'POST', 'PUT']);
   res.status(405).end(`Method ${req.method} Not Allowed`);
 }
