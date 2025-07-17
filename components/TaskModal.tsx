@@ -73,7 +73,7 @@ const PropertyInput = ({ property, onChange, onRemove }: { property: LocalProper
 const TaskModal = ({ task, onClose, onComplete, onUpdate }: TaskModalProps) => {
   const { update: updateSession } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [title, setTitle] = useState(task.title);
   const [duration, setDuration] = useState(task.duration);
   const [properties, setProperties] = useState<LocalProperty[]>(task.properties || []);
@@ -104,7 +104,7 @@ const TaskModal = ({ task, onClose, onComplete, onUpdate }: TaskModalProps) => {
       });
       const updatedTask = await res.json();
       if (!res.ok) throw new Error(updatedTask.message || 'Failed to save changes');
-      
+
       onUpdate(updatedTask);
       onClose();
     } catch (error) {
@@ -136,14 +136,14 @@ const TaskModal = ({ task, onClose, onComplete, onUpdate }: TaskModalProps) => {
                 <Input id="duration" type="number" value={duration} onChange={(e) => setDuration(Number(e.target.value))} />
             </div>
           </div>
-          
+
           <hr className="my-4" />
 
           {/* Custom Properties Section */}
           <div className="space-y-4">
             <Label>custom properties</Label>
             {properties.map((prop, index) => (
-                <PropertyInput 
+                <PropertyInput
                     key={prop.id}
                     property={prop}
                     onChange={(field, value) => handlePropertyChange(index, field, value)}
@@ -156,15 +156,15 @@ const TaskModal = ({ task, onClose, onComplete, onUpdate }: TaskModalProps) => {
           </div>
         </div>
         <DialogFooter className="sm:justify-between">
-          <Button 
-            onClick={handleComplete} 
+          <Button
+            onClick={handleComplete}
             disabled={isLoading}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
             {isLoading ? '...' : 'complete task'}
           </Button>
-          <Button 
-            onClick={handleSaveChanges} 
+          <Button
+            onClick={handleSaveChanges}
             disabled={isLoading}
           >
             {isLoading ? '...' : 'save changes'}
