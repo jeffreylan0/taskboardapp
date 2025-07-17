@@ -42,35 +42,68 @@ model User {
   emailVerified   DateTime?
   image           String?
   streak          Int       @default(0)
-  lastCompletedAt DateTime? // Add this line
+  lastCompletedAt DateTime? // Tracks the last day a task was completed for the streak system.
+
+  // Relations to other models
   accounts        Account[]
   sessions        Session[]
   tasks           Task[]
 }
 
 model Task {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  title       String
+  duration    Int
+  completed   Boolean   @default(false)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  propertyValues PropertyValue[]
+  reminders      Reminder[]
+}
+
+model Property {
+  id      String       @id @default(cuid())
+  name    String       // The name the user gives the property (e.g., "Priority").
+  type    PropertyType // The data type of the property (e.g., TEXT, DATE).
+  userId  String       // Properties are user-specific.
+  
+  options Json?
+  
+  values  PropertyValue[]
+
+  @@unique([userId, name]) // A user cannot have two properties with the same name.
+}
+
+model PropertyValue {
+  id          String @id @default(cuid())
+  value       String // The actual data stored as a string (e.g., text, a date, a selected option's ID).
+  
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId  String
+  
+  @@unique([taskId, propertyId]) // A task can only have one value for each property.
+}
+
+model Reminder {
   id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  title     String
-  duration  Int // Duration in minutes
-  completed Boolean  @default(false)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tags      Tag[]
+  remindAt  DateTime // When the reminder should be sent.
+  sent      Boolean  @default(false)
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId    String
 }
 
-// Future-proof tables
-model Tag {
-  id    String @id @default(cuid())
-  name  String @unique
-  tasks Task[]
-}
-
-// You might not need to store recommendations, but it can be useful for analytics
-model AIRecommendation {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
-  taskTitle  String
-  duration   Int
-  confidence Float
+enum PropertyType {
+  TEXT
+  NUMBER
+  CHECKBOX
+  SELECT
+  MULTI_SELECT
+  DATE
+  URL
+  EMAIL
+  PHONE
 }
