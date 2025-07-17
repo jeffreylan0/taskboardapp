@@ -21,9 +21,7 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([provider, providerAccountId])
 }
 
@@ -42,9 +40,7 @@ model User {
   emailVerified   DateTime?
   image           String?
   streak          Int       @default(0)
-  lastCompletedAt DateTime? // Tracks the last day a task was completed for the streak system.
-
-  // Relations to other models
+  lastCompletedAt DateTime?
   accounts        Account[]
   sessions        Session[]
   tasks           Task[]
@@ -58,42 +54,7 @@ model Task {
   completed   Boolean   @default(false)
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  propertyValues PropertyValue[]
-  reminders      Reminder[]
-}
-
-model Property {
-  id      String       @id @default(cuid())
-  name    String       // The name the user gives the property (e.g., "Priority").
-  type    PropertyType // The data type of the property (e.g., TEXT, DATE).
-  userId  String       // Properties are user-specific.
-  
-  options Json?
-  
-  values  PropertyValue[]
-
-  @@unique([userId, name]) // A user cannot have two properties with the same name.
-}
-
-model PropertyValue {
-  id          String @id @default(cuid())
-  value       String // The actual data stored as a string (e.g., text, a date, a selected option's ID).
-  
-  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  taskId      String
-  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId  String
-  
-  @@unique([taskId, propertyId]) // A task can only have one value for each property.
-}
-
-model Reminder {
-  id        String   @id @default(cuid())
-  remindAt  DateTime // When the reminder should be sent.
-  sent      Boolean  @default(false)
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  taskId    String
+  properties  Json?
 }
 
 enum PropertyType {

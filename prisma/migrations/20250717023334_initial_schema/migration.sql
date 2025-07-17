@@ -50,39 +50,9 @@ CREATE TABLE "Task" (
     "duration" INTEGER NOT NULL,
     "completed" BOOLEAN NOT NULL DEFAULT false,
     "userId" TEXT NOT NULL,
+    "properties" JSONB,
 
     CONSTRAINT "Task_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Property" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "type" "PropertyType" NOT NULL,
-    "userId" TEXT NOT NULL,
-    "options" JSONB,
-
-    CONSTRAINT "Property_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "PropertyValue" (
-    "id" TEXT NOT NULL,
-    "value" TEXT NOT NULL,
-    "taskId" TEXT NOT NULL,
-    "propertyId" TEXT NOT NULL,
-
-    CONSTRAINT "PropertyValue_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Reminder" (
-    "id" TEXT NOT NULL,
-    "remindAt" TIMESTAMP(3) NOT NULL,
-    "sent" BOOLEAN NOT NULL DEFAULT false,
-    "taskId" TEXT NOT NULL,
-
-    CONSTRAINT "Reminder_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -94,12 +64,6 @@ CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
--- CreateIndex
-CREATE UNIQUE INDEX "Property_userId_name_key" ON "Property"("userId", "name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "PropertyValue_taskId_propertyId_key" ON "PropertyValue"("taskId", "propertyId");
-
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -108,12 +72,3 @@ ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Task" ADD CONSTRAINT "Task_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "PropertyValue" ADD CONSTRAINT "PropertyValue_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "PropertyValue" ADD CONSTRAINT "PropertyValue_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Reminder" ADD CONSTRAINT "Reminder_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;
