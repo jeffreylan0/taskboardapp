@@ -5,9 +5,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
-import { PlusCircle, Trash2, GripVertical, Plus, X } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
+import { PlusCircle, Trash2, GripVertical, Plus, X, ChevronsUpDown, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-// --- Manual Type Definition ---
+// --- Type Definitions ---
 const propertyTypes = ["TEXT", "NUMBER", "CHECKBOX", "SELECT", "MULTI_SELECT", "DATE", "URL", "EMAIL", "PHONE"] as const;
 type PropertyType = typeof propertyTypes[number];
 
@@ -25,8 +28,57 @@ export type LocalProperty = {
   options?: SelectOption[];
 };
 
-// --- Editor Popover Sub-Component ---
-// This component's internal logic remains the same. The changes are in how we call it.
+// --- Multi-Select Input Sub-Component ---
+const MultiSelectInput = ({ options, value, onChange }: { options: SelectOption[], value: string[], onChange: (newValue: string[]) => void }) => {
+    const [open, setOpen] = useState(false);
+    // Use a Set for efficient lookups to check if an option is selected
+    const selectedValues = new Set(value);
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between h-auto min-h-[2.5rem]">
+                    <div className="flex gap-1 flex-wrap">
+                        {value.length > 0
+                            ? value.map(val => <Badge key={val} variant="secondary" className="font-normal">{val}</Badge>)
+                            : <span className="text-muted-foreground font-normal">select options...</span>
+                        }
+                    </div>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                    <CommandInput placeholder="search options..." />
+                    <CommandEmpty>no option found.</CommandEmpty>
+                    <CommandGroup className="max-h-60 overflow-y-auto">
+                        {options.map((option) => (
+                            <CommandItem
+                                key={option.id}
+                                value={option.name}
+                                onSelect={() => {
+                                    const newSelectedValues = new Set(selectedValues);
+                                    if (newSelectedValues.has(option.name)) {
+                                        newSelectedValues.delete(option.name);
+                                    } else {
+                                        newSelectedValues.add(option.name);
+                                    }
+                                    onChange(Array.from(newSelectedValues));
+                                }}
+                            >
+                                <Check className={cn("mr-2 h-4 w-4", selectedValues.has(option.name) ? "opacity-100" : "opacity-0")}/>
+                                {option.name}
+                            </CommandItem>
+                        ))}
+                    </CommandGroup>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    );
+};
+
+
+// --- Property Editor Popover Sub-Component ---
 const PropertyEditor = ({ property, onSave, onDelete }: { property: LocalProperty, onSave: (updatedProperty: LocalProperty) => void, onDelete: () => void }) => {
     const [localProp, setLocalProp] = useState<LocalProperty>(() => ({
         ...property,
@@ -131,7 +183,6 @@ interface PropertyManagerProps {
 }
 
 export const PropertyManager = ({ properties, onPropertiesChange }: PropertyManagerProps) => {
-  // NEW: State to control which property editor popover is open
   const [editingPropertyId, setEditingPropertyId] = useState<string | null>(null);
 
   const handleAddProperty = () => {
@@ -140,9 +191,13 @@ export const PropertyManager = ({ properties, onPropertiesChange }: PropertyMana
   };
 
   const handleUpdateProperty = (updatedProperty: LocalProperty) => {
-    if (updatedProperty.type !== 'SELECT' && updatedProperty.type !== 'MULTI_SELECT') {
-        const existingProp = properties.find(p => p.id === updatedProperty.id);
-        if (existingProp && (existingProp.type === 'SELECT' || existingProp.type === 'MULTI_SELECT')) {
+    const existingProp = properties.find(p => p.id === updatedProperty.id);
+    // When changing a property type, reset its value to avoid data mismatches
+    if (existingProp && existingProp.type !== updatedProperty.type) {
+        // If changing to multi-select, initialize value as an empty array
+        if (updatedProperty.type === 'MULTI_SELECT') {
+            updatedProperty.value = [];
+        } else {
             updatedProperty.value = '';
         }
     }
@@ -175,7 +230,13 @@ export const PropertyManager = ({ properties, onPropertiesChange }: PropertyMana
           </Select>
         );
       case 'MULTI_SELECT':
-        return <Textarea placeholder="multi-select coming soon..." rows={1} className="text-sm" disabled />;
+        return (
+            <MultiSelectInput
+                options={prop.options || []}
+                value={Array.isArray(prop.value) ? prop.value : []}
+                onChange={(newValue) => handleValueChange(prop.id, newValue)}
+            />
+        );
       case 'NUMBER':
         return <Input type="number" placeholder="value" value={prop.value || ''} onChange={(e) => handleValueChange(prop.id, e.target.value)} />;
       case 'CHECKBOX':
@@ -185,7 +246,7 @@ export const PropertyManager = ({ properties, onPropertiesChange }: PropertyMana
       case 'URL':
           return <Input type="url" placeholder="https://..." value={prop.value || ''} onChange={(e) => handleValueChange(prop.id, e.target.value)} />;
       case 'EMAIL':
-          return <Input type="email" placeholder="name@example.com" value={prop.value || ''} onChange={(e) => handleValueChange(prop.id, e.target.value)} />;
+          return <Input type="email" placeholder="name@example.com" value={prop.value || ''} onChange={(e) => handleValueChange(prop.id, e.gant.value)} />;
       case 'PHONE':
           return <Input type="tel" placeholder="123-456-7890" value={prop.value || ''} onChange={(e) => handleValueChange(prop.id, e.target.value)} />;
       case 'TEXT':
@@ -199,9 +260,7 @@ export const PropertyManager = ({ properties, onPropertiesChange }: PropertyMana
       <Label>custom properties</Label>
       <div className='space-y-2'>
         {properties.map((prop) => (
-          // FIX #2: Changed items-start to items-center to fix vertical jump
           <div key={prop.id} className="grid grid-cols-12 gap-2 items-center">
-            {/* FIX #1: This Popover is now a controlled component */}
             <Popover open={editingPropertyId === prop.id} onOpenChange={(isOpen) => setEditingPropertyId(isOpen ? prop.id : null)}>
               <PopoverTrigger asChild>
                 <Button variant="ghost" className="col-span-5 justify-start font-medium h-full text-left">
@@ -213,7 +272,7 @@ export const PropertyManager = ({ properties, onPropertiesChange }: PropertyMana
                 property={prop}
                 onSave={(updatedProperty) => {
                   handleUpdateProperty(updatedProperty);
-                  setEditingPropertyId(null); // This closes the popover on save
+                  setEditingPropertyId(null);
                 }}
                 onDelete={() => handleRemoveProperty(prop.id)}
               />
