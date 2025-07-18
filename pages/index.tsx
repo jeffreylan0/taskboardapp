@@ -226,8 +226,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         createdAt: task.createdAt.toISOString(),
     }));
 
-    // FIX: Reordered the sort options
-    const sortOptions = [
+    // FIX: Explicitly define the type for the sortOptions array
+    const sortOptions: { label: string; value: string; isProperty?: boolean }[] = [
         { label: 'Duration (High to Low)', value: 'duration-desc' },
         { label: 'Duration (Low to High)', value: 'duration-asc' },
         { label: 'Date Created (Newest)', value: 'createdAt-desc' },
