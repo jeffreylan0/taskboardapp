@@ -1,7 +1,8 @@
 // types/properties.d.ts
+import { propertyTypes } from "@/lib/constants";
 
-// The 'const' has been removed from this file.
-export type PropertyType = "TEXT" | "NUMBER" | "CHECKBOX" | "SELECT" | "MULTI_SELECT" | "DATE" | "URL" | "EMAIL" | "PHONE";
+// The PropertyType is now derived from the runtime constant, ensuring they always match.
+export type PropertyType = typeof propertyTypes[number];
 
 export type SelectOption = {
   id: string;

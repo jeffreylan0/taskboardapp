@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Wand2 } from 'lucide-react';
 import { PropertyManager } from './PropertyManager';
-import type { LocalProperty } from '@/types/properties'; // FIX: Import type from its new location
+import type { LocalProperty } from '@/types/properties';
 
 interface AddTaskFormProps {
   onTaskCreate: (newTask: Task) => void;
@@ -21,13 +21,31 @@ interface Recommendation {
 const AddTaskForm = ({ onTaskCreate, onClose }: AddTaskFormProps) => {
   const [title, setTitle] = useState('');
   const [duration, setDuration] = useState<number | null>(null);
-  const [properties, setProperties] = useState<LocalProperty[]>([]); // State for custom properties
-
+  const [properties, setProperties] = useState<LocalProperty[]>([]);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  // Debounce effect to get AI-estimated duration
+  useEffect(() => {
+    const fetchDefaults = async () => {
+        try {
+            const res = await fetch(`/api/settings/default-properties?t=${new Date().getTime()}`);
+            if (res.ok) {
+                const defaultProps = await res.json();
+                const initialProps = defaultProps.map((p: any) => ({
+                    ...p,
+                    id: crypto.randomUUID(),
+                    value: p.type === 'MULTI_SELECT' ? [] : (p.type === 'CHECKBOX' ? false : null),
+                }));
+                setProperties(initialProps);
+            }
+        } catch (error) {
+            console.error("Failed to fetch default properties:", error);
+        }
+    };
+    fetchDefaults();
+  }, []);
+
   useEffect(() => {
     if (title.trim().length < 5) {
       setRecommendation(null);
@@ -62,12 +80,12 @@ const AddTaskForm = ({ onTaskCreate, onClose }: AddTaskFormProps) => {
       const res = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, duration, properties }), // Send properties to the API
+        body: JSON.stringify({ title, duration, properties }),
       });
       const newTask = await res.json();
       if (!res.ok) throw new Error(newTask.message || 'failed to create task');
       onTaskCreate(newTask);
-      onClose(); // Close modal on success
+      onClose();
     } catch (error) {
       console.error(error);
     } finally {
@@ -81,49 +99,57 @@ const AddTaskForm = ({ onTaskCreate, onClose }: AddTaskFormProps) => {
     <DialogContent className="sm:max-w-2xl dark:bg-slate-950">
       <form onSubmit={handleSubmit}>
         <DialogHeader>
-          <DialogTitle>create a new task</DialogTitle>
+          <DialogTitle>Create a New Task</DialogTitle>
         </DialogHeader>
         <div className="grid gap-6 py-6 max-h-[60vh] overflow-y-auto pr-6">
           <div className="space-y-2">
-            <Label htmlFor="title">task title</Label>
+            <Label htmlFor="title">Task Title</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
-          </div>
-          <div className="space-y-3">
-            <Label>duration (minutes)</Label>
-            {isLoading && <div className="flex items-center text-sm text-gray-500"><Loader2 className="mr-2 h-4 w-4 animate-spin" />getting suggestion...</div>}
-
-            {recommendation && !isLoading && (
-                 <div className="grid grid-cols-3 gap-2">
-                   <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration - adjustment)}>{`${recommendation.duration - adjustment} min`}</Button>
-                   <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration)}>
-                     <Wand2 className="mr-2 h-4 w-4"/> {recommendation.duration} min
-                   </Button>
-                   <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration + adjustment)}>{`${recommendation.duration + adjustment} min`}</Button>
-                 </div>
-             )}
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-              <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">or</span></div>
-            </div>
-
-            <Input
-              type="number"
-              placeholder="enter a custom duration..."
-              onChange={(e) => setDuration(Number(e.target.value) || null)}
-            />
           </div>
 
           <hr className="my-2 dark:border-slate-800" />
 
-          {/* Use the new PropertyManager component */}
-          <PropertyManager properties={properties} onPropertiesChange={setProperties} />
+          {/* FIX: Restructured layout */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium">properties</Label>
+
+            {/* Duration Input */}
+            <div className="grid grid-cols-12 gap-2 items-center">
+                <div className="col-span-5">
+                    <Label className="font-medium pl-10">duration</Label>
+                </div>
+                <div className="col-span-7 space-y-2">
+                    {isLoading && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Getting suggestion...</div>}
+                    {recommendation && !isLoading && (
+                        <div className="grid grid-cols-3 gap-2">
+                            <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration - adjustment)}>{`${recommendation.duration - adjustment} min`}</Button>
+                            <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration)}>
+                                <Wand2 className="mr-2 h-4 w-4"/> {recommendation.duration} min
+                            </Button>
+                            <Button type="button" variant="outline" onClick={() => setDuration(recommendation.duration + adjustment)}>{`${recommendation.duration + adjustment} min`}</Button>
+                        </div>
+                    )}
+                    <Input
+                        type="number"
+                        placeholder="Custom duration (min)..."
+                        onChange={(e) => setDuration(Number(e.target.value) || null)}
+                    />
+                </div>
+            </div>
+
+            {/* Custom Properties Manager */}
+            <PropertyManager
+                properties={properties}
+                onPropertiesChange={setProperties}
+                showLabel={false} // Hide the internal label
+            />
+          </div>
 
         </div>
         <DialogFooter className='pt-4 border-t dark:border-slate-800'>
-          <Button type="button" variant="ghost" onClick={onClose}>cancel</Button>
+          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
           <Button type="submit" disabled={!title || !duration || isCreating} className="bg-green-600 hover:bg-green-700 text-white">
-            {isCreating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>creating...</> : 'create task'}
+            {isCreating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Creating...</> : 'Create Task'}
           </Button>
         </DialogFooter>
       </form>

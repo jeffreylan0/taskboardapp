@@ -68,24 +68,35 @@ const TaskModal = ({ task, onClose, onComplete, onUpdate }: TaskModalProps) => {
     <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-2xl dark:bg-slate-950">
         <DialogHeader>
-          <DialogTitle>edit task</DialogTitle>
+          <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-                <Label htmlFor="title">title</Label>
-                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-            <div>
-                <Label htmlFor="duration">duration (min)</Label>
-                <Input id="duration" type="number" value={duration} onChange={(e) => setDuration(Number(e.target.value))} />
-            </div>
+        <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-6">
+          <div className="space-y-2">
+            <Label htmlFor="title">Task Title</Label>
+            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
 
-          <hr className="my-4 dark:border-slate-800" />
+          <hr className="my-2 dark:border-slate-800" />
 
-          {/* Use the new PropertyManager component */}
-          <PropertyManager properties={properties} onPropertiesChange={setProperties} />
+          {/* FIX: Restructured layout to match AddTaskForm */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium">properties</Label>
+
+            <div className="grid grid-cols-12 gap-2 items-center">
+                <div className="col-span-5">
+                    <Label className="font-medium pl-10">duration</Label>
+                </div>
+                <div className="col-span-7">
+                    <Input id="duration" type="number" value={duration} onChange={(e) => setDuration(Number(e.target.value))} />
+                </div>
+            </div>
+
+            <PropertyManager
+                properties={properties}
+                onPropertiesChange={setProperties}
+                showLabel={false}
+            />
+          </div>
 
         </div>
         <DialogFooter className="sm:justify-between pt-4 border-t dark:border-slate-800">
@@ -94,13 +105,13 @@ const TaskModal = ({ task, onClose, onComplete, onUpdate }: TaskModalProps) => {
             disabled={isLoading}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
-            {isLoading ? '...' : 'complete task'}
+            {isLoading ? '...' : 'Complete Task'}
           </Button>
           <Button
             onClick={handleSaveChanges}
             disabled={isLoading}
           >
-            {isLoading ? '...' : 'save changes'}
+            {isLoading ? '...' : 'Save Changes'}
           </Button>
         </DialogFooter>
       </DialogContent>

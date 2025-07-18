@@ -22,6 +22,7 @@ model Account {
   id_token          String? @db.Text
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([provider, providerAccountId])
 }
 
@@ -34,27 +35,44 @@ model Session {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  name            String?
-  email           String?   @unique
-  emailVerified   DateTime?
-  image           String?
-  streak          Int       @default(0)
-  lastCompletedAt DateTime?
-  accounts        Account[]
-  sessions        Session[]
-  tasks           Task[]
+  id                   String            @id @default(cuid())
+  name                 String?
+  email                String?           @unique
+  emailVerified        DateTime?
+  image                String?
+  streak               Int               @default(0)
+  lastCompletedAt      DateTime?
+  propertyVisibility   Json?
+  theme                String            @default("system")
+  taskSpacing          String            @default("default")
+  accounts             Account[]
+  sessions             Session[]
+  tasks                Task[]
+  defaultProperties    DefaultProperty[]
 }
 
 model Task {
-  id          String    @id @default(cuid())
-  createdAt   DateTime  @default(now())
-  title       String
-  duration    Int
-  completed   Boolean   @default(false)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  properties  Json?
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  title      String
+  duration   Int
+  completed  Boolean  @default(false)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  properties Json?
+}
+
+model DefaultProperty {
+  id      String       @id @default(cuid())
+  name    String
+  type    PropertyType
+  options Json?
+  order   Int
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
 }
 
 enum PropertyType {
