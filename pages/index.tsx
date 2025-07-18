@@ -224,9 +224,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const tasks = tasksFromDb.map(task => ({
         ...task,
         createdAt: task.createdAt.toISOString(),
+        // FIX: Explicitly cast the 'properties' field to the type expected by the frontend.
+        // This is safe because we control the data being saved to this field.
+        properties: task.properties as LocalProperty[] | null,
     }));
 
-    // FIX: Explicitly define the type for the sortOptions array
     const sortOptions: { label: string; value: string; isProperty?: boolean }[] = [
         { label: 'Duration (High to Low)', value: 'duration-desc' },
         { label: 'Duration (Low to High)', value: 'duration-asc' },
