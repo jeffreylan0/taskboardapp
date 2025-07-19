@@ -30,7 +30,7 @@ interface SettingsPageProps {
 const SettingsPage = ({ initialVisibility, allPropertyNames, initialAppearance, initialDefaultProperties }: SettingsPageProps) => {
   const [visibility, setVisibility] = useState<VisibilitySettings>(initialVisibility);
   const [appearance, setAppearance] = useState<AppearanceSettings>(initialAppearance);
-  const [defaultProperties, setDefaultProperties] = useState<DefaultProperty[]>(initialDefaultProperties);
+  const [defaultProperties, setDefaultProperties] = useState<LocalProperty[]>(initialDefaultProperties);
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -97,7 +97,6 @@ const SettingsPage = ({ initialVisibility, allPropertyNames, initialAppearance, 
           <div className="p-6 bg-white dark:bg-slate-900 rounded-lg shadow-md border dark:border-slate-800">
             <h2 className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Property Visibility</h2>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              {/* FIX: Added disclaimer about Duration */}
               Choose which properties to display on task cards. Duration is a core property and is always visible.
             </p>
             <div className="mt-6">
@@ -116,9 +115,8 @@ const SettingsPage = ({ initialVisibility, allPropertyNames, initialAppearance, 
              </p>
              <div className="mt-6">
                 <PropertyManager
-                    properties={defaultProperties as LocalProperty[]}
-                    onPropertiesChange={(newProps) => setDefaultProperties(newProps as DefaultProperty[])}
-                    // FIX: Hide the "custom properties" label
+                    properties={defaultProperties}
+                    onPropertiesChange={setDefaultProperties}
                     showLabel={false}
                 />
              </div>

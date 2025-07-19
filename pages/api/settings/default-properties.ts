@@ -14,6 +14,7 @@ const propertySchema = z.object({
     id: z.string(),
     name: z.string().min(1, 'Option name cannot be empty')
   })).optional(),
+  value: z.any().optional(),
 });
 
 const updateDefaultPropertiesSchema = z.array(propertySchema);
@@ -49,7 +50,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse) 
             if (newProperties.length > 0) {
                 await tx.defaultProperty.createMany({
                     data: newProperties.map((prop, index) => ({
-                        // Note: The client-side ID is discarded; Prisma generates a new one.
                         name: prop.name,
                         type: prop.type,
                         options: prop.options || [],
